@@ -44,5 +44,6 @@ $ truffle migrate --reset --network ropsten
 <img src='img/ropsten.jpg' />
 
 Token contract address: `0x15461cc94ef777eebb7b54be3e1cb90c53b5d574`
+
 Bounty contract address: `0xdc4f31c7a1f8671282024b86c479fafbd15e7369`
 
