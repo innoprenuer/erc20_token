@@ -75,6 +75,8 @@ contract('Bounties', function(accounts) {
   it("[TOKENS] verifies that simple bounty contribution and activation functions", async () => {
     let registry = await Bounties.deployed();
     let bountyToken = await Token.deployed();
+    // add bounty contract to be whitelisted
+    await bountyToken.setWhiteList(registry.address, true);
 
     const registerEvent = registry.BountyIssued()
     let bountyId = 0
@@ -106,6 +108,8 @@ contract('Bounties', function(accounts) {
   it("[TOKENS] verifies that basic fulfillment acceptance flow works", async () => {
     let registry = await Bounties.deployed();
     let bountyToken = await Token.deployed()
+    // add bounty contract to be whitelisted
+    await bountyToken.setWhiteList(registry.address, true);
 
     const registerEvent = registry.BountyIssued()
     let bountyId = 0
@@ -114,6 +118,7 @@ contract('Bounties', function(accounts) {
             bountyId = result.args.bountyId
         }
     })
+
 
     await registry.issueBounty(accounts[0],
                                 2528821098,
@@ -127,6 +132,7 @@ contract('Bounties', function(accounts) {
     await registry.activateBounty(bountyId,1000, {from: accounts[0]});
 
     await registry.fulfillBounty(bountyId, "data", {from: accounts[1]});
+
     let fulfillment = await registry.getFulfillment(bountyId,0);
     assert(fulfillment[0] === false);
     await registry.acceptFulfillment(bountyId,0,{from: accounts[0]});

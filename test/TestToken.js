@@ -77,5 +77,38 @@ contract('Token', (accounts) => {
           console.log(`other account (user[2]) has ${bal5.toNumber()} tokens received from user[1].`)
 
         })
+
+
+        it('Should whitelisted accounts', async () => {
+
+          const token = await Token.deployed()
+          const bal1 = await token.balanceOf.call(accounts[0])
+          console.log(`contract owner (user[0]) has ${bal1.toNumber()} tokens now.`)
+
+          await token.transfer(accounts[1], 100, { from: accounts[0] })
+          const bal2 = await token.balanceOf.call(accounts[1])
+          console.log(`receiver (user[1]) has ${bal2.toNumber()} tokens from owner and is frozen.`)
+
+
+          console.log(`-------------------------`)
+
+          await token.transfer(accounts[2], 50, { from: accounts[1] })
+          console.log(`receiver (user[1]) tries to transfer 50 tokens to other account (user[2]).`)
+          const bal3 = await token.balanceOf.call(accounts[1])
+          console.log(`receiver (user[1]) cannot transfer and has ${bal3.toNumber()} tokens.`)
+
+          console.log(`-------------------------`)
+
+          await token.setWhiteList(accounts[1], true, { from: accounts[0] })
+          console.log(`contract owner set receiver account (user[1]) into whitelist.`)
+
+          await token.transfer(accounts[2], 50, { from: accounts[1] })
+          const bal4 = await token.balanceOf.call(accounts[1])
+          console.log(`receiver (user[1]) can transfer and has ${bal4.toNumber()} tokens now.`)
+
+          const bal5 = await token.balanceOf.call(accounts[2])
+          console.log(`other account (user[2]) has ${bal5.toNumber()} tokens received from user[1].`)
+
+        })
     })
 })

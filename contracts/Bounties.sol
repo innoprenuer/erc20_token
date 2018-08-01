@@ -150,7 +150,7 @@ contract Bounties {
 
   /// @dev Bounties(): instantiates
   /// @param _tokenAddress the token contract
-  function Bounties(address _tokenAddress)
+  constructor(address _tokenAddress)
       public
   {
       owner = msg.sender;

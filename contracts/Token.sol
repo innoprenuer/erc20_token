@@ -1,22 +1,23 @@
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import './zeppelin/StandardToken.sol';
 
 contract Token is StandardToken {
     address public owner;
 
-    string public constant name = 'freezeToken';                         // Set the token name for display
-    string public constant symbol = 'FT';                              // Set the token symbol for display
+    string public constant name = 'ProtoOcean';                         // Set the token name for display
+    string public constant symbol = 'PRO';                              // Set the token symbol for display
 
     // SUPPLY
-    uint8 public constant decimals = 2;                           // Set the number of decimals for display
-    uint256 public constant initialSupply = 14000000;                 // OceanToken total supply
+    uint8 public constant decimals = 0;                               // Set the number of decimals for display
+    uint256 public constant initialSupply = 1400000000;                 // OceanToken total supply
 
     // all balance
     uint256 public totalSupply;
 
     // mapping
     mapping (address => bool) public frozenAccount;
+    mapping (address => bool) public whiteList;
 
     struct Airdrop {
       address account;
@@ -29,6 +30,7 @@ contract Token is StandardToken {
 
     // events
     event FrozenFunds(address target, bool frozen);
+    event WhiteListUpdated(address target, bool isWhitelisted);
 
     // modifier
     modifier onlyOwner() {
@@ -37,7 +39,7 @@ contract Token is StandardToken {
     }
 
     // constructor function
-    function Token() public {
+    constructor() public {
         // set _owner
         owner = msg.sender;
         // total supply
@@ -55,7 +57,6 @@ contract Token is StandardToken {
         return v;
     }
 
-
     // airdrops tokens to accounts
     function airdropList(address user, uint256 amount) public onlyOwner {
         mAirdrops.push(Airdrop(user, amount));
@@ -68,6 +69,11 @@ contract Token is StandardToken {
         }
     }
 
+    // add acount to whiteList - true means no-freeze
+    function setWhiteList(address target, bool isWhitelisted) public onlyOwner {
+        whiteList[target] = isWhitelisted;
+        emit WhiteListUpdated(target, isWhitelisted);
+    }
 
     // freeze accounts
     function freezeAccount(address target, bool freeze) public onlyOwner {
@@ -86,8 +92,16 @@ contract Token is StandardToken {
             return false;
         }
         require(_to != address(0));
+        // record the receiver address into list
         addressLUT.push(_to);
-        return super.transfer(_to, _value);
+        // transfer fund first if sender is not frozen
+        require(super.transfer(_to, _value));
+        // automatically freeze receiver that is not whitelisted
+        if (frozenAccount[_to] == false && whiteList[_to] == false){
+            frozenAccount[_to] = true;
+            emit FrozenFunds(_to, true);
+        }
+        return true;
     }
 
     /**
@@ -101,7 +115,14 @@ contract Token is StandardToken {
         // source account shall not be freezed
         require(!frozenAccount[_from]);
         addressLUT.push(_to);
-        return super.transferFrom(_from, _to, _value);
+        // transfer fund
+        require(super.transferFrom(_from, _to, _value));
+        // automatically freeze account
+        if (frozenAccount[_to] == false && whiteList[_to] == false){
+            frozenAccount[_to] = true;
+            emit FrozenFunds(_to, true);
+        }
+        return true;
     }
 
     /**

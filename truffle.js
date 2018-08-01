@@ -16,6 +16,13 @@ module.exports = {
       },
       gas: 4698712,
       network_id: 3
+    },
+    rinkeby: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "	https://ropsten.infura.io/Kuo1lxDBsFtMnaw6GiN2")
+      },
+      gas: 4698712,
+      network_id: 4
     }
   },
   solc: {
