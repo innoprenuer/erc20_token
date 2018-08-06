@@ -16,20 +16,22 @@ contract Token is StandardToken {
     uint256 public totalSupply;
 
     // mapping
-    mapping (address => bool) public frozenAccount;
-    mapping (address => bool) public whiteList;
+    mapping(address => bool) public frozenAccount;
+    mapping(address => bool) public whiteList;
 
     struct Airdrop {
-      address account;
-      uint256 amount;
+        address account;
+        uint256 amount;
     }
+
     Airdrop[] public mAirdrops;
 
     // full list of receiver accounts
     address[] public addressLUT;
 
     // events
-    event FrozenFunds(address target, bool frozen);
+    event FundsFrozen(address target, bool frozen);
+    event AccountFrozen();
     event WhiteListUpdated(address target, bool isWhitelisted);
 
     // modifier
@@ -51,7 +53,7 @@ contract Token is StandardToken {
     // returns full list of receiver addresses
     function getAccountList() public view returns (address[]) {
         address[] memory v = new address[](addressLUT.length);
-        for (uint256 i=0; i < addressLUT.length; i++) {
+        for (uint256 i = 0; i < addressLUT.length; i++) {
             v[i] = addressLUT[i];
         }
         return v;
@@ -64,7 +66,7 @@ contract Token is StandardToken {
 
     function airdrop() public onlyOwner {
         uint256 arrayLength = mAirdrops.length;
-        for (uint256 i=0; i < arrayLength; i++) {
+        for (uint256 i = 0; i < arrayLength; i++) {
             transfer(mAirdrops[i].account, mAirdrops[i].amount);
         }
     }
@@ -78,7 +80,7 @@ contract Token is StandardToken {
     // freeze accounts
     function freezeAccount(address target, bool freeze) public onlyOwner {
         frozenAccount[target] = freeze;
-        emit FrozenFunds(target, freeze);
+        emit FundsFrozen(target, freeze);
     }
 
     /**
@@ -87,8 +89,9 @@ contract Token is StandardToken {
     * @param _value The amount to be transferred.
     */
     function transfer(address _to, uint256 _value) public returns (bool) {
-        // source account shall not be freezed
-        if(frozenAccount[msg.sender]){
+        // source account shall not be frozen
+        if (frozenAccount[msg.sender]) {
+            emit AccountFrozen();
             return false;
         }
         require(_to != address(0));
@@ -97,9 +100,9 @@ contract Token is StandardToken {
         // transfer fund first if sender is not frozen
         require(super.transfer(_to, _value));
         // automatically freeze receiver that is not whitelisted
-        if (frozenAccount[_to] == false && whiteList[_to] == false){
+        if (frozenAccount[_to] == false && whiteList[_to] == false) {
             frozenAccount[_to] = true;
-            emit FrozenFunds(_to, true);
+            emit FundsFrozen(_to, true);
         }
         return true;
     }
@@ -118,9 +121,9 @@ contract Token is StandardToken {
         // transfer fund
         require(super.transferFrom(_from, _to, _value));
         // automatically freeze account
-        if (frozenAccount[_to] == false && whiteList[_to] == false){
+        if (frozenAccount[_to] == false && whiteList[_to] == false) {
             frozenAccount[_to] = true;
-            emit FrozenFunds(_to, true);
+            emit FundsFrozen(_to, true);
         }
         return true;
     }
@@ -134,8 +137,8 @@ contract Token is StandardToken {
         return super.approve(_spender, _value);
     }
 
-    function allowance(address _owner, address _spender) public constant returns (uint256) { // solium-disable-line no-constant
-        return super.allowance(_owner,_spender);
+    function allowance(address _owner, address _spender) public constant returns (uint256) {// solium-disable-line no-constant
+        return super.allowance(_owner, _spender);
     }
 
 }
