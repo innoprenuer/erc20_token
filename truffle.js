@@ -19,7 +19,7 @@ module.exports = {
     },
     rinkeby: {
       provider: function() {
-        return new HDWalletProvider(mnemonic, "	https://ropsten.infura.io/Kuo1lxDBsFtMnaw6GiN2")
+        return new HDWalletProvider(mnemonic, "	https://rinkeby.infura.io/Kuo1lxDBsFtMnaw6GiN2")
       },
       gas: 4698712,
       network_id: 4
