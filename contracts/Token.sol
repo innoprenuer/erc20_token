@@ -5,12 +5,12 @@ import './zeppelin/StandardToken.sol';
 contract Token is StandardToken {
     address public owner;
 
-    string public constant name = 'ProtoOcean';                         // Set the token name for display
-    string public constant symbol = 'PRO';                              // Set the token symbol for display
+    string public constant name = 'OceanBountyToken';
+    string public constant symbol = 'OPBT';
 
     // SUPPLY
-    uint8 public constant decimals = 0;                               // Set the number of decimals for display
-    uint256 public constant initialSupply = 1400000000;                 // OceanToken total supply
+    uint8 public constant decimals = 18;
+    uint256 public constant initialSupply = 5000000 * 10**18;
 
     // all balance
     uint256 public totalSupply;
@@ -19,20 +19,13 @@ contract Token is StandardToken {
     mapping(address => bool) public frozenAccount;
     mapping(address => bool) public whiteList;
 
-    struct Airdrop {
-        address account;
-        uint256 amount;
-    }
-
-    Airdrop[] public mAirdrops;
-
     // full list of receiver accounts
     address[] public addressLUT;
 
     // events
-    event FundsFrozen(address target, bool frozen);
-    event AccountFrozen();
-    event WhiteListUpdated(address target, bool isWhitelisted);
+    event FundsFrozen(address indexed _address, bool _frozen);
+    event AccountFrozen(address indexed _address);
+    event WhiteListUpdated(address indexed _address, bool _isWhitelisted);
 
     // modifier
     modifier onlyOwner() {
@@ -48,10 +41,12 @@ contract Token is StandardToken {
         totalSupply = initialSupply;
         // owner of token contract has all tokens
         balances[msg.sender] = initialSupply;
+        // add contract itself into whiteList
+        whiteList[address(this)] = true;
     }
 
     // returns full list of receiver addresses
-    function getAccountList() public view returns (address[]) {
+    function getAccountList() public view onlyOwner() returns (address[]) {
         address[] memory v = new address[](addressLUT.length);
         for (uint256 i = 0; i < addressLUT.length; i++) {
             v[i] = addressLUT[i];
@@ -59,26 +54,14 @@ contract Token is StandardToken {
         return v;
     }
 
-    // airdrops tokens to accounts
-    function airdropList(address user, uint256 amount) public onlyOwner {
-        mAirdrops.push(Airdrop(user, amount));
-    }
-
-    function airdrop() public onlyOwner {
-        uint256 arrayLength = mAirdrops.length;
-        for (uint256 i = 0; i < arrayLength; i++) {
-            transfer(mAirdrops[i].account, mAirdrops[i].amount);
-        }
-    }
-
     // add acount to whiteList - true means no-freeze
-    function setWhiteList(address target, bool isWhitelisted) public onlyOwner {
+    function setWhiteList(address target, bool isWhitelisted) public onlyOwner() {
         whiteList[target] = isWhitelisted;
         emit WhiteListUpdated(target, isWhitelisted);
     }
 
     // freeze accounts
-    function freezeAccount(address target, bool freeze) public onlyOwner {
+    function freezeAccount(address target, bool freeze) public onlyOwner() {
         frozenAccount[target] = freeze;
         emit FundsFrozen(target, freeze);
     }
@@ -91,7 +74,7 @@ contract Token is StandardToken {
     function transfer(address _to, uint256 _value) public returns (bool) {
         // source account shall not be frozen
         if (frozenAccount[msg.sender]) {
-            emit AccountFrozen();
+            emit AccountFrozen(msg.sender);
             return false;
         }
         require(_to != address(0));
@@ -114,9 +97,14 @@ contract Token is StandardToken {
     * @param _value uint256 the amount of tokens to be transferred
     */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0));
         // source account shall not be freezed
-        require(!frozenAccount[_from]);
+        if (frozenAccount[_from]) {
+            emit AccountFrozen(_from);
+            return false;
+        }
+        // des address should be valid
+        require(_to != address(0));
+        // add receiver to lookup table
         addressLUT.push(_to);
         // transfer fund
         require(super.transferFrom(_from, _to, _value));

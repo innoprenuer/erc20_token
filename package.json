@@ -1,5 +1,5 @@
 {
-  "name": "token",
+  "name": "tutorialtoken",
   "version": "1.0.0",
   "description": "",
   "main": "truffle.js",
@@ -13,10 +13,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "solc": "^0.4.24",
     "lite-server": "^2.3.0"
-  },
-  "dependencies": {
-    "truffle-hdwallet-provider": "0.0.6"
   }
 }
