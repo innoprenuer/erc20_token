@@ -27,7 +27,7 @@ $ truffle test test/TestToken.js
 
 The result is similar to following:
 
-<img src='img/test.jpg' width="600"/>
+<img src='img/testImage.jpg' width="600"/>
 
 
 ### 4. Deploy to Ropsten TestNet
