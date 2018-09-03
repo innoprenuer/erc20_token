@@ -27,6 +27,8 @@ App = {
       App.contracts.Token = TruffleContract(TokenArtifact);
       // Set the provider for our contract.
       App.contracts.Token.setProvider(App.web3Provider);
+      //update addresses stats
+      App.getAddresses();
       // Use our contract to retieve and mark the adopted pets.
       return App.getBalances();
     });
@@ -37,6 +39,8 @@ App = {
     $(document).on('click', '#transferButton', App.handleTransfer);
     $(document).on('click', '#whiteListButton', App.handleWhiteList);
     $(document).on('click', '#unfreezeButton', App.handleUnfreeze);
+    $(document).on('click', '#unwhiteListButton', App.handleUnWhiteList);
+    $(document).on('click', '#freezeButton', App.handleFreeze);
   },
 
   handleUnfreeze: function(event) {
@@ -58,6 +62,34 @@ App = {
         return TokenInstance.freezeAccount(toAddress, false, {from: account});
       }).then(function(result) {
         alert('unfreeze account Successful!');
+        App.getAddresses();
+        return App.getBalances();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
+
+  handleFreeze: function(event) {
+    event.preventDefault();
+
+    var toAddress = $('#TTTransferAddress').val();
+    var TokenInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Token.deployed().then(function(instance) {
+        TokenInstance = instance;
+
+        return TokenInstance.freezeAccount(toAddress, true, {from: account});
+      }).then(function(result) {
+        alert('freeze account Successful!');
+        App.getAddresses();
         return App.getBalances();
       }).catch(function(err) {
         console.log(err.message);
@@ -84,6 +116,7 @@ App = {
         return TokenInstance.setWhiteList(toAddress, true, {from: account});
       }).then(function(result) {
         alert('setWhiteList Successful!');
+        App.getAddresses();
         return App.getBalances();
       }).catch(function(err) {
         console.log(err.message);
@@ -91,7 +124,32 @@ App = {
     });
   },
 
+  handleUnWhiteList: function(event) {
+    event.preventDefault();
 
+    var toAddress = $('#TTTransferAddress').val();
+    var TokenInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Token.deployed().then(function(instance) {
+        TokenInstance = instance;
+
+        return TokenInstance.setWhiteList(toAddress, false, {from: account});
+      }).then(function(result) {
+        alert('unset whitelist Successful!');
+        App.getAddresses();
+        return App.getBalances();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
 
   handleTransfer: function(event) {
     event.preventDefault();
@@ -116,6 +174,7 @@ App = {
         return TokenInstance.transfer(toAddress, amount, {from: account});
       }).then(function(result) {
         alert('Transfer Successful!');
+        App.getAddresses();
         return App.getBalances();
       }).catch(function(err) {
         console.log(err.message);
@@ -143,6 +202,74 @@ App = {
         balance = result.c[0];
 
         $('#TTBalance').text(balance);
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
+
+  getAddresses: function() {
+    console.log('Getting addresses...');
+
+    var TokenInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+     
+      App.contracts.Token.deployed()
+      .then(function(instance) {
+        TokenInstance = instance;
+        return TokenInstance.getAccountList();
+      })
+      .then(function(addresses) {
+    
+        whitelistPromises = [];
+        frozenPromises = [];
+        AreFrozenAccounts = [];
+      
+        //call to get frozen accounts
+        addresses.forEach(addr => {
+          return frozenPromises.push(TokenInstance.frozenAccount.call(addr)); 
+        })
+    
+        Promise.all(frozenPromises)
+        .then(
+          function(frozenAccounts) {
+            console.log("Resolved frozen promises...");
+            //copy frozen accounts to global array
+            AreFrozenAccounts = frozenAccounts.slice();
+            //call to get whitelisted accounts
+            addresses.forEach(address => {
+              return whitelistPromises.push(TokenInstance.whiteList.call(address));
+            })
+            return Promise.all(whitelistPromises);
+          })
+        .then(function(isWhitelistedAddress){
+          console.log("Resolved whitelisted addreses...");
+          console.log("Will create table with data..");
+          console.log(AreFrozenAccounts);
+          console.log(isWhitelistedAddress);
+          console.log(addresses);
+
+          //clear previous data
+          $('.row22').remove();
+          //create table and put data here
+          for (var i = 0; i < addresses.length; i++) {
+            row = $('<tr></tr>').addClass('row22');
+            rowHead = $('<th></th>').attr('scope', 'row').text(i+1);
+            rowDataAddr = $('<td></td>').text(addresses[i]);
+            rowDataWhitelist = $('<td></td>').text(isWhitelistedAddress[i]);
+            rowDataFrozen = $('<td></td>').text(AreFrozenAccounts[i]);
+            row.append(rowHead);
+            row.append(rowDataAddr);
+            row.append(rowDataWhitelist);
+            row.append(rowDataFrozen);
+            console.log(row)
+            $('#StatsTableBody').append(row);  
+        }
+        })
       }).catch(function(err) {
         console.log(err.message);
       });

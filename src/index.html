@@ -20,15 +20,28 @@
   <body>
     <div class="container">
       <div class="row">
-        <div class="col-xs-12 col-sm-8 col-sm-push-2">
+        <div class="col-xs-12 col-sm-4 col-md-4">
+            <img src="img/ocean-logo.svg" alt="ocean logo" class="float-right" style="width:30%">
+        </div>
+        <div class="col-xs-12 col-sm-8 col-md-8">
+            <h1 class="text-left">FreezeAccount & WhiteListUpdate</h1>
+            <hr/>
+            <br/>
+          </div>
+         
+       <!-- <div class="col-xs-12 col-sm-8 col-sm-push-2">
+            <div class="d-flex flex-row">
+          <img src="img/ocean-logo.svg" alt="ocean logo" class="float-left" style="width:10%">
           <h1 class="text-center">FreezeAccount & WhiteListUpdate</h1>
+          
+          </div>
           <hr/>
           <br/>
-        </div>
+        </div> -->
       </div>
 
       <div id="petsRow" class="row">
-        <div class="col-sm-6 col-sm-push-3 col-md-4 col-md-push-4">
+        <div class="col-sm-6 col-sm-push-3 col-md-6 col-md-push-4">
           <div class="panel panel-default">
             <div class="panel-heading">
               <h3 class="panel-title">Input Address and Click Button</h3>
@@ -36,13 +49,41 @@
             <div class="panel-body">
               <h4>Transfer</h4>
               <input type="text" class="form-control" id="TTTransferAddress" placeholder="Address" />
-            <!--   <input type="text" class="form-control" id="TTTransferAmount" placeholder="Value" /> -->
-              <button class="btn btn-primary" id="whiteListButton" type="button">set WhiteList</button>
-              <button class="btn btn-primary" id="unfreezeButton" type="button">set unfreezed</button>
+              <input type="text" class="form-control" id="TTTransferAmount" placeholder="Value" />
+              <br/>
+              <button class="btn btn-primary" id="whiteListButton" type="button">WhiteList</button>
+              <button class="btn btn-primary" id="unfreezeButton" type="button">Unfreezed</button>
+              <button class="btn btn-primary" id="transferButton" type="button">Transfer</button>
+              <button class="btn btn-primary" id="unwhiteListButton" type="button">Remove WhiteList</button>
+              <button class="btn btn-primary" id="freezeButton" type="button">Freeze</button>
+              
             </div>
           </div>
         </div>
       </div>
+
+      <hr/>
+      <br/>
+      <div id="petsRow" class="row">
+       
+          <div class="panel panel-default">
+            <div class="panel-body">
+                <table class="table" id="StatsTable">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">IsWhitelisted?</th>
+                        <th scope="col">IsFrozen?</th>
+                      </tr>
+                    </thead>
+                    <tbody id="StatsTableBody">
+                    </tbody>
+                  </table>
+            </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
